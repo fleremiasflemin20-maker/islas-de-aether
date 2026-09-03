@@ -11,7 +11,9 @@ Un mundo de fantasía **sin borde**, renderizado enteramente con caracteres. Sin
 ## Qué hay dentro
 
 - **Mundo infinito**: el espacio se divide en sectores que se generan cuando te acercas. No hay mapa fijo ni bordes.
-- **Seis regiones con nombre** — Aether, Cenizas, Coral, Escarcha, Dunas y Abismo — más los Confines entre medias.
+- **Siete regiones con nombre** — Aether, Cenizas, Coral, Escarcha, Dunas, Abismo y la Ciudadela — más los Confines entre medias.
+- **Caminos entre todas las islas**: cada una tiende un puente a su vecina más cercana, con tablero, barandas y faroles. Se cruzan a pie.
+- **La Ciudadela**: una isla cuatro veces mayor que cualquier otra con una fortaleza encima — muralla octogonal, ocho torres, casa de puertas, patio y un torreón escalonado con agujas.
 - **Luz en tiempo real**: cada punto guarda su normal; el sombreado se calcula contra el sol o la luna en cada fotograma, con oclusión ambiental precalculada.
 - **Ciclo día/noche** con sol y luna físicos, ventanas y cristales que se encienden al anochecer.
 - **Dragones que reaccionan a tu mirada** y rugen cuando te ven.
@@ -31,7 +33,7 @@ Un mundo de fantasía **sin borde**, renderizado enteramente con caracteres. Sin
 | `espacio` | Aterrizar · saltar · encender faro |
 | `F` | Volver a volar |
 | `M` | Mapa |
-| `1`–`6` | Viajar a una región |
+| `1`–`7` | Viajar a una región |
 | `T` | Adelantar la hora |
 | `N` | Audio |
 | `H` | Cómo funciona el motor |
@@ -52,11 +54,13 @@ Añade `?semilla=loquesea` a la URL y tendrás otro mundo entero.
 
 5. **Luz de verdad, no horneada.** El sombreado se calcula cada fotograma como `dot(normal, dirección del sol)` — o de la luna de noche — más el rebote del cielo por arriba. Las laderas se encienden y se apagan según la hora. Encima va una oclusión ambiental precalculada con una rejilla de ocupación: los huecos y las grietas se oscurecen solos.
 
-6. **Sectores, culling y LOD.** El mundo se divide en celdas de 180 unidades generadas bajo demanda desde `hash(sx, sz, semilla)`; las lejanas se desalojan. Cada fotograma se descartan de golpe las que caen fuera del cono de visión o más allá de la niebla, y las que quedan se recorren *salteadas* (1 de cada 2, 4 u 8 según distancia). Se tocan decenas de miles de puntos por fotograma, no medio millón.
+6. **Caminos que se pueden pisar.** Cada isla busca a su vecina más cercana entre los nueve sectores de alrededor y le tiende un puente. Como las dos hacen la misma cuenta sobre los mismos datos, el par se dibuja una sola vez —lo pone quien tiene la clave menor— y los extremos coinciden aunque cada sector se genere en un momento distinto. Andando, la baranda empuja hacia el centro del tablero: sin eso, un camino de 4,4 unidades de ancho se cruza una vez de cada cinco.
 
-7. **Todo eso en un Worker.** Generación y proyección corren fuera del hilo principal y devuelven la rejilla resuelta en buffers transferibles que van y vienen sin copiarse. El hilo principal solo pinta, suena y juega. Si el navegador bloquea los workers, el mismo código corre en línea y no se nota más que en el rendimiento.
+7. **Sectores, culling y LOD.** El mundo se divide en celdas de 180 unidades generadas bajo demanda desde `hash(sx, sz, semilla)`; las lejanas se desalojan. Cada fotograma se descartan de golpe las que caen fuera del cono de visión o más allá de la niebla, y las que quedan se recorren *salteadas* (1 de cada 2, 4 u 8 según distancia). Se tocan decenas de miles de puntos por fotograma, no medio millón.
 
-8. **Pintado en tiras.** Cada fila agrupa celdas contiguas del mismo color en una cadena y se dibuja de un golpe: de ~10.000 celdas a unos cientos de llamadas a `fillText`.
+8. **Todo eso en un Worker.** Generación y proyección corren fuera del hilo principal y devuelven la rejilla resuelta en buffers transferibles que van y vienen sin copiarse. El hilo principal solo pinta, suena y juega. Si el navegador bloquea los workers, el mismo código corre en línea y no se nota más que en el rendimiento.
+
+9. **Pintado en tiras.** Cada fila agrupa celdas contiguas del mismo color en una cadena y se dibuja de un golpe: de ~10.000 celdas a unos cientos de llamadas a `fillText`.
 
 ## Añadir una región
 
