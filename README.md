@@ -1,6 +1,6 @@
 # Islas de Aether
 
-Un archipiélago de fantasía renderizado **enteramente con caracteres**. Sin texturas, sin mallas 3D, sin WebGL: un `<canvas>` 2D dibujando glifos sobre una rejilla, en **un solo archivo HTML** sin dependencias.
+Un mundo de fantasía **sin borde**, renderizado enteramente con caracteres. Sin texturas, sin mallas 3D, sin WebGL: un `<canvas>` 2D dibujando glifos sobre una rejilla, en **un solo archivo HTML** sin dependencias.
 
 **→ [Entrar al mundo](https://fleremiasflemin20-maker.github.io/islas-de-aether/)**
 
@@ -10,40 +10,53 @@ Un archipiélago de fantasía renderizado **enteramente con caracteres**. Sin te
 
 ## Qué hay dentro
 
-- **474.000 puntos**, 70 islas repartidas en 6 regiones, generadas proceduralmente desde una semilla.
-- **Ciclo día/noche completo**: sol y luna recorren el cielo, la paleta se reescribe cada fotograma, de noche se encienden ventanas, cristales y estrellas.
-- **Dragones que reaccionan a tu mirada**: si los enfocas más de un segundo, rompen su órbita y se te plantan delante.
-- **Mapa navegable** del archipiélago con viaje rápido entre regiones.
-- **60 fps** gracias a culling por chunks y LOD por submuestreo.
+- **Mundo infinito**: el espacio se divide en sectores que se generan cuando te acercas. No hay mapa fijo ni bordes.
+- **Seis regiones con nombre** — Aether, Cenizas, Coral, Escarcha, Dunas y Abismo — más los Confines entre medias.
+- **Luz en tiempo real**: cada punto guarda su normal; el sombreado se calcula contra el sol o la luna en cada fotograma, con oclusión ambiental precalculada.
+- **Ciclo día/noche** con sol y luna físicos, ventanas y cristales que se encienden al anochecer.
+- **Dragones que reaccionan a tu mirada** y rugen cuando te ven.
+- **Puedes aterrizar y caminar** por las islas, y encender los seis faros.
+- **Audio procedural** (viento, cascadas, rugidos) generado con WebAudio, sin un solo archivo de sonido.
+- **Táctil en móvil**: joystick, mirada por arrastre y botones.
+- Todo el mundo y el render viven **en un Web Worker**, así que generar sectores nuevos no da tirones.
 
 ## Controles
 
 | Tecla | Acción |
 |---|---|
-| `W` `A` `S` `D` | Volar |
+| `W` `A` `S` `D` | Mover |
 | `Q` `E` | Bajar / subir |
-| arrastrar ratón | Mirar |
+| arrastrar | Mirar |
 | `⇧` | Impulso |
-| `M` | Mapa del archipiélago |
+| `espacio` | Aterrizar · saltar · encender faro |
+| `F` | Volver a volar |
+| `M` | Mapa |
 | `1`–`6` | Viajar a una región |
 | `T` | Adelantar la hora |
+| `N` | Audio |
 | `H` | Cómo funciona el motor |
 
-Si sueltas los controles, entra en *gran tour* automático por las regiones.
+En móvil: joystick a la izquierda, mirada a la derecha, botones abajo a la derecha.
+
+Añade `?semilla=loquesea` a la URL y tendrás otro mundo entero.
 
 ## Cómo funciona el motor
 
-1. **Nube de puntos, no polígonos.** El mundo es un array de puntos `{x, y, z, material, brillo}` generados con ruido: discos de isla, quillas de roca colgando al vacío, troncos, copas, agujas de cristal, casas huecas con ventanas, puentes con catenaria.
+1. **Nube de puntos, no polígonos.** Cada punto lleva posición, normal (3 bytes), material y oclusión. Islas, quillas colgando, troncos, copas, agujas, casas huecas y puentes con catenaria salen de ruido con semilla.
 
-2. **Proyección en perspectiva.** Cada punto se rota a espacio de cámara (`yaw`, `pitch`) y se divide entre la profundidad: `x/z`, `y/z`. Hay que corregir que la celda de texto es más alta que ancha, o todo sale estirado.
+2. **Proyección en perspectiva.** Se rota a espacio de cámara (`yaw`, `pitch`) y se divide entre la profundidad: `x/z`, `y/z`. Hay que corregir que la celda de texto es más alta que ancha, o todo sale estirado.
 
-3. **Z-buffer por celda.** Una rejilla paralela guarda la profundidad más cercana vista en cada celda de caracteres. Lo que llega más lejos se descarta. Eso da oclusión real sin ordenar nada.
+3. **Z-buffer por celda.** Una rejilla paralela guarda la profundidad más cercana de cada celda de caracteres. Lo que llega más lejos se descarta: oclusión real sin ordenar nada.
 
-4. **La rampa de caracteres es el sombreado.** `brillo = luz direccional × niebla por distancia`, y ese número indexa la rampa del material: `. , : ; - = + * # @`. Cada material tiene rampa y color propios, por eso roca, musgo y cristal se leen distinto siendo todo texto.
+4. **La rampa de caracteres es el sombreado.** El brillo indexa la rampa del material: `. , : ; - = + * # @`. Cada material tiene rampa y color propios, por eso roca, musgo y cristal se leen distinto siendo todo texto.
 
-5. **Chunks + LOD.** Los puntos se ordenan una vez (counting sort) en celdas de 70 unidades. Cada fotograma se descartan de golpe las celdas fuera del cono de visión o más allá de la niebla, y las lejanas se recorren *salteadas* (1 de cada 2, 4 u 8). Se tocan decenas de miles de puntos por fotograma, no 474.000.
+5. **Luz de verdad, no horneada.** El sombreado se calcula cada fotograma como `dot(normal, dirección del sol)` — o de la luna de noche — más el rebote del cielo por arriba. Las laderas se encienden y se apagan según la hora. Encima va una oclusión ambiental precalculada con una rejilla de ocupación: los huecos y las grietas se oscurecen solos.
 
-6. **Pintado en tiras.** No se dibuja carácter a carácter: cada fila agrupa celdas contiguas del mismo color en una cadena y se pinta de un golpe. De ~10.000 celdas a unos cientos de llamadas a `fillText`.
+6. **Sectores, culling y LOD.** El mundo se divide en celdas de 180 unidades generadas bajo demanda desde `hash(sx, sz, semilla)`; las lejanas se desalojan. Cada fotograma se descartan de golpe las que caen fuera del cono de visión o más allá de la niebla, y las que quedan se recorren *salteadas* (1 de cada 2, 4 u 8 según distancia). Se tocan decenas de miles de puntos por fotograma, no medio millón.
+
+7. **Todo eso en un Worker.** Generación y proyección corren fuera del hilo principal y devuelven la rejilla resuelta en buffers transferibles que van y vienen sin copiarse. El hilo principal solo pinta, suena y juega. Si el navegador bloquea los workers, el mismo código corre en línea y no se nota más que en el rendimiento.
+
+8. **Pintado en tiras.** Cada fila agrupa celdas contiguas del mismo color en una cadena y se dibuja de un golpe: de ~10.000 celdas a unos cientos de llamadas a `fillText`.
 
 ## Añadir una región
 
@@ -51,9 +64,8 @@ Una región es solo datos. El motor no distingue Aether de Cenizas:
 
 ```js
 {
-  name: "Tu región", sub: "un subtítulo", cx: 0, cz: 0, cy: 0,
-  span: 130, n: 12, rMin: 8, rMax: 26,
-  seed: 12345,
+  name: "Tu región", sub: "un subtítulo",
+  cx: 0, cz: 0, cy: 0, span: 170, rMin: 8, rMax: 26,
   flora: "tree",        // "tree" | "dead" | "shroom"
   houses: true, spires: 2,
   glow: { 2: 0.8 },     // materiales que brillan de noche
@@ -62,7 +74,7 @@ Una región es solo datos. El motor no distingue Aether de Cenizas:
 }
 ```
 
-Añádela al array `REGIONS` y ya tienes otro sitio del mundo.
+Añádela al array `REGIONS` y ya existe ese sitio del mundo.
 
 ## Licencia
 
