@@ -1382,8 +1382,8 @@ self.onmessage = function (e) {
           sun: [0.4, 0.8, -0.45], amb: 0.8, skyLight: 0.7, z, m, s }, [z.buffer, m.buffer, s.buffer]);
       }
       warm++;
-      bar.style.width = (40 + warm * 3) + "%";
-      if (warm < 20) return requestAnimationFrame(warmup);
+      bar.style.width = (40 + warm * 6) + "%";
+      if (warm < 10) return requestAnimationFrame(warmup);
       bar.style.width = "100%";
       $("boot").hidden = true;
       window.__ready = true;
