@@ -33,7 +33,7 @@ Un mundo de fantasía **sin borde**, renderizado enteramente con caracteres. Sin
 | `espacio` | Aterrizar · saltar · encender faro |
 | `F` | Volver a volar |
 | `M` | Mapa |
-| `1`–`7` | Viajar a una región |
+| `1`–`7` | Viajar a una región (`7` = la Ciudadela, o el botón de arriba a la izquierda) |
 | `T` | Adelantar la hora |
 | `N` | Audio |
 | `H` | Cómo funciona el motor |
