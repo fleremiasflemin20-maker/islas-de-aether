@@ -18,7 +18,7 @@ Un mundo de fantasía **sin borde**, renderizado enteramente con caracteres. Sin
 - **Ciclo día/noche** con sol y luna físicos, ventanas y cristales que se encienden al anochecer.
 - **Dragones que reaccionan a tu mirada** y rugen cuando te ven.
 - **Puedes aterrizar y caminar** por las islas, y encender los seis faros.
-- **Audio procedural** (viento, cascadas, rugidos) generado con WebAudio, sin un solo archivo de sonido.
+- **Audio procedural** (viento, cascadas, rugidos) generado con WebAudio, sin un solo archivo de sonido. Arranca apagado: se enciende con `N`.
 - **Táctil en móvil**: joystick, mirada por arrastre y botones.
 - Todo el mundo y el render viven **en un Web Worker**, así que generar sectores nuevos no da tirones.
 
@@ -35,7 +35,7 @@ Un mundo de fantasía **sin borde**, renderizado enteramente con caracteres. Sin
 | `M` | Mapa |
 | `1`–`7` | Viajar a una región (`7` = la Ciudadela, o el botón de arriba a la izquierda) |
 | `T` | Adelantar la hora |
-| `N` | Audio |
+| `N` | Audio (arranca apagado) |
 | `H` | Cómo funciona el motor |
 
 En móvil: joystick a la izquierda, mirada a la derecha, botones abajo a la derecha.
